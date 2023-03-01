@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "./Interfaces/IStakingPool.sol";
+import "./FreezerBase.sol";
 
-contract FreezerV2 {
+contract FreezerV2 is FreezerBase {
+    using SafeERC20 for IERC20;
     struct participantData {
         uint256 deposited;
-        uint256 ghny;
+        uint256 honeyRewardMask;
+        uint256 bnbRewardMask;
     }
 
-    uint256 constant DECIMAL_OFFSET = 1 ether;
-
-    IStakingPool public StakingPool;
     uint256 honeyRoundMask;
     uint256 bnbRoundMask;
+
     uint256 totalFreezedAmount;
 
     function freeze(uint256 amount, address referral) external {}
@@ -21,18 +21,18 @@ contract FreezerV2 {
     function unfreeze() external {}
 
     function _claimAllStakingRewards() internal {
-        uint256 totalStakingIncrease = StakingPool.balanceOf(address(this)) -
-            totalFreezedAmount;
         uint256 totalLpRewards = StakingPool.lpBalanceOf(address(this));
         uint256 additionalHoney = StakingPool.getPendingHoneyRewards();
-
-        if (totalStakingIncrease > 0) {
-            StakingPool.unstake(totalStakingIncrease);
-        }
         (uint256 claimedAdditionalHoney, uint256 claimedBnb) = StakingPool
             .claimLpTokens(totalLpRewards, additionalHoney, address(this));
-        if (totalStakingIncrease + claimedAdditionalHoney > 0) {
-            _rewardHoney(totalStakingIncrease + claimedAdditionalHoney);
+        if (claimedAdditionalHoney > 0) {
+            _approveToken(
+                address(GhnyToken),
+                address(StakingPool),
+                claimedAdditionalHoney
+            );
+            StakingPool.stake(claimedAdditionalHoney);
+            _rewardHoney(claimedAdditionalHoney);
         }
         if (claimedBnb > 0) {
             _rewardBnb(claimedBnb);

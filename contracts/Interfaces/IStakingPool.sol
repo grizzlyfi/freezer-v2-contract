@@ -8,6 +8,8 @@ interface IStakingPool {
 
     function getPendingHoneyRewards() external view returns (uint256);
 
+    function stake(uint256 amount) external;
+
     function unstake(uint256 amount) external;
 
     function claimLpTokens(
