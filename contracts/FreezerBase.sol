@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import "./Interfaces/IStakingPool.sol";
+import "./Interfaces/IGhny.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -13,8 +14,7 @@ abstract contract FreezerBase {
 
     IStakingPool public StakingPool =
         IStakingPool(0x6F42895f37291ec45f0A307b155229b923Ff83F1);
-    IERC20 public GhnyToken =
-        IERC20(0xa045E37a0D1dd3A45fefb8803D22457abc0A728a);
+    IGhny public GhnyToken = IGhny(0xa045E37a0D1dd3A45fefb8803D22457abc0A728a);
 
     function _transferToken(
         address token,
