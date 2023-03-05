@@ -9,6 +9,7 @@ abstract contract FreezerBase {
     using SafeERC20 for IERC20;
 
     uint256 constant DECIMAL_OFFSET = 1 ether;
+    uint256 constant FREEZING_TIME = 4380 hours;
 
     IStakingPool public StakingPool =
         IStakingPool(0x6F42895f37291ec45f0A307b155229b923Ff83F1);
