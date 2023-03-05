@@ -12,9 +12,9 @@ contract FreezerV2 is FreezerBase {
         uint256 level;
     }
 
-    uint256 honeyRoundMask;
+    uint256 public honeyRoundMask;
 
-    uint256 totalFreezedAmount;
+    uint256 public totalFreezedAmount;
 
     mapping(address => ParticipantData) public participantData;
     mapping(address => uint256) public referralRewards;
@@ -72,6 +72,8 @@ contract FreezerV2 is FreezerBase {
         participantData[msg.sender].level = 0;
         totalFreezedAmount -= _currentBalance;
 
+        StakingPool.unstake(_currentBalance);
+
         _transferToken(address(GhnyToken), msg.sender, _currentBalance);
     }
 
@@ -125,13 +127,13 @@ contract FreezerV2 is FreezerBase {
         uint256 _level;
         if (_deposited == 0) {
             _level = 0;
-        } else if (_deposited < 10) {
+        } else if (_deposited < 10 ether) {
             _level = 1;
-        } else if (_deposited < 100) {
+        } else if (_deposited < 100 ether) {
             _level = 2;
-        } else if (_deposited < 1000) {
+        } else if (_deposited < 1000 ether) {
             _level = 3;
-        } else if (_deposited < 10000) {
+        } else if (_deposited < 10000 ether) {
             _level = 4;
         } else {
             _level = 5;
