@@ -25,7 +25,10 @@ contract FreezerV2 is FreezerBase {
         stopInEmergency
     {
         require(_amount > 0, "No amount provided");
-        // get amount of tokens
+        require(
+            msg.sender != _referral,
+            "Referral and msg.sender must be different"
+        );
         require(
             IERC20(address(GhnyToken)).allowance(msg.sender, address(this)) >=
                 _amount,
@@ -43,13 +46,23 @@ contract FreezerV2 is FreezerBase {
         _approveToken(address(GhnyToken), address(StakingPool), _amount);
         StakingPool.stake(_amount);
 
+        uint256 _depositedBefore = participantData[msg.sender].deposited;
+
         participantData[msg.sender].deposited += _amount;
-        participantData[msg.sender].startTime = block.timestamp;
         totalFreezedAmount += _amount;
 
         uint256 _level = _getUpdatedParticipantLevel(
             participantData[msg.sender].deposited
         );
+
+        if (_depositedBefore == 0) {
+            participantData[msg.sender].startTime = block.timestamp;
+        } else {
+            uint256 _currentLevel = participantData[msg.sender].level;
+            if (_level > _currentLevel) {
+                participantData[msg.sender].startTime = block.timestamp;
+            }
+        }
 
         participantData[msg.sender].level = _level;
         _payOutReferral(_referral, _amount);
@@ -82,6 +95,10 @@ contract FreezerV2 is FreezerBase {
         _updateParticipantDataDeposit(msg.sender);
         uint256 _deposited = balanceOf(msg.sender);
         uint256 _updatedLevel = _getUpdatedParticipantLevel(_deposited);
+        uint256 _currentLevel = participantData[msg.sender].level;
+        if (_updatedLevel > _currentLevel) {
+            participantData[msg.sender].startTime = block.timestamp;
+        }
         participantData[msg.sender].level = _updatedLevel;
     }
 
@@ -110,12 +127,28 @@ contract FreezerV2 is FreezerBase {
         }
     }
 
+    function compound() external nonReentrant {
+        _claimAllStakingRewards();
+    }
+
     function _payOutReferral(address _referral, uint256 _frozenAmount)
         internal
     {
         if (_referral == address(0)) return;
-        // todo change to participant percentage
-        uint256 _referralReward = _frozenAmount / 100;
+        uint256 _percentage;
+        uint256 _referralLevel = participantData[_referral].level;
+        if (_referralLevel == 0) {
+            _percentage = 1;
+        } else if (_referralLevel == 1) {
+            _percentage = 2;
+        } else if (_referralLevel == 2) {
+            _percentage = 5;
+        } else if (_referralLevel == 3) {
+            _percentage = 7;
+        } else if (_referralLevel == 4) {
+            _percentage = 10;
+        }
+        uint256 _referralReward = (_frozenAmount * _percentage) / 100;
         referralRewards[_referral] += _referralReward;
     }
 
@@ -125,18 +158,16 @@ contract FreezerV2 is FreezerBase {
         returns (uint256)
     {
         uint256 _level;
-        if (_deposited == 0) {
+        if (_deposited < 10 ether) {
             _level = 0;
-        } else if (_deposited < 10 ether) {
-            _level = 1;
         } else if (_deposited < 100 ether) {
-            _level = 2;
+            _level = 1;
         } else if (_deposited < 1000 ether) {
-            _level = 3;
+            _level = 2;
         } else if (_deposited < 10000 ether) {
-            _level = 4;
+            _level = 3;
         } else {
-            _level = 5;
+            _level = 4;
         }
         return _level;
     }

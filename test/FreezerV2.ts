@@ -51,7 +51,7 @@ describe("FreezerV2", function () {
 
         expect(participant.deposited).to.equal(depositAmount);
         expect(participant.honeyRewardMask).to.equal(0);
-        expect(participant.level).to.equal(1);
+        expect(participant.level).to.equal(0);
     });
 
     it("Can freeze twice", async function () {
@@ -61,6 +61,8 @@ describe("FreezerV2", function () {
 
         await network.provider.send("evm_mine")
 
+        const participantBefore = await FreezerInstance.participantData(await signer.getAddress());
+
         await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
@@ -69,8 +71,9 @@ describe("FreezerV2", function () {
 
         expect(participant.deposited).to.be.greaterThan(depositAmount.mul(2));
         expect(participant.honeyRewardMask).to.equal(62243800000);
-        expect(participant.level).to.equal(1);
+        expect(participant.level).to.equal(0);
         expect(totalDepositAmount).to.equal(depositAmount.mul(2).add(62243800000))
+        expect(participantBefore.startTime).to.equal(participant.startTime)
     })
 
     it("Can freeze from two accounts", async function () {
@@ -90,11 +93,11 @@ describe("FreezerV2", function () {
 
         expect(participant.deposited).to.equal(depositAmount);
         expect(participant.honeyRewardMask).to.equal(0);
-        expect(participant.level).to.equal(1);
+        expect(participant.level).to.equal(0);
 
         expect(participant2.deposited).to.equal(depositAmount2);
         expect(participant2.honeyRewardMask).to.equal(93365530000);
-        expect(participant2.level).to.equal(1);
+        expect(participant2.level).to.equal(0);
 
         const balance = await FreezerInstance.balanceOf(await signer.getAddress());
         const balance2 = await FreezerInstance.balanceOf(await otherSigner.getAddress());
@@ -142,5 +145,146 @@ describe("FreezerV2", function () {
         expect(participant.deposited).to.equal(0);
         expect(participant.honeyRewardMask).to.equal(0);
         expect(participant.level).to.equal(0);
+    });
+
+    it("Can increase level", async function () {
+        const depositAmount = ethers.utils.parseEther("9.999999999999999");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participant.level).to.equal(0);
+
+        await network.provider.send("evm_increaseTime", [3600])
+        await network.provider.send("evm_mine")
+
+        await FreezerInstance.compound();
+
+        const participant2 = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participant2.level).to.equal(0);
+
+        const canUpgrade = await FreezerInstance.canIncreaseLevel(await signer.getAddress());
+
+        expect(canUpgrade).to.be.true;
+
+        await FreezerInstance.connect(signer).triggerLevelUp();
+
+        const participant3 = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participant3.level).to.equal(1);
+        expect(participant3.startTime).to.be.greaterThan(participant.startTime)
+
+        const canUpgrade2 = await FreezerInstance.canIncreaseLevel(await signer.getAddress());
+
+        expect(canUpgrade2).to.be.false;
+
+    });
+    it("Can increase level without increase", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        await network.provider.send("evm_increaseTime", [3600])
+        await network.provider.send("evm_mine")
+
+        await FreezerInstance.connect(signer).triggerLevelUp();
+
+        const participantAfter = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participantAfter.deposited).to.be.greaterThan(participant.deposited);
+        expect(participantAfter.startTime).to.equal(participant.startTime);
+        expect(participantAfter.level).to.equal(participant.level);
+
+    });
+
+    it("Can increase level without deposit", async function () {
+
+        await FreezerInstance.connect(signer).triggerLevelUp();
+
+        const participantAfter = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participantAfter.deposited).to.equal(0);
+        expect(participantAfter.startTime).to.equal(0);
+        expect(participantAfter.level).to.equal(0);
+        expect(participantAfter.honeyRewardMask).to.equal(0);
+
+    });
+
+    it("Can increase level with deposit", async function () {
+
+        const depositAmount = ethers.utils.parseEther("1");
+        const depositAmount2 = ethers.utils.parseEther("10");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount.add(depositAmount2));
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participant.level).to.equal(0);
+
+        await network.provider.send("evm_increaseTime", [3600])
+        await network.provider.send("evm_mine")
+
+        await FreezerInstance.connect(signer).freeze(depositAmount2, ethers.constants.AddressZero);
+
+        const participant2 = await FreezerInstance.participantData(await signer.getAddress());
+
+        expect(participant2.level).to.equal(1);
+        expect(participant2.startTime).to.be.greaterThan(participant.startTime);
+
+    });
+
+    it("Can not do same referral", async function () {
+        await expect(FreezerInstance.connect(signer).freeze(1, await signer.getAddress())).to.be.revertedWith("Referral and msg.sender must be different")
+    });
+
+    it("Can do referral", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, await otherSigner.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.01"));
+
+        await FreezerInstance.claimReferralRewards();
+
+        expect(await GhnyToken.balanceOf(await otherSigner.getAddress())).to.equal(ethers.utils.parseEther("0.01"));
+
+    });
+
+    it("Can do referral with level up 1", async function () {
+        const depositAmount = ethers.utils.parseEther("11");
+        const depositAmount1 = ethers.utils.parseEther("1");
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
+
+        await GhnyToken.approve(FreezerInstance.address, depositAmount1);
+        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.02"));
+
+        const balanceBefore = await GhnyToken.balanceOf(await signer.getAddress());
+
+        await FreezerInstance.connect(signer).claimReferralRewards();
+
+        const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
+
+        expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.02"));
+
     });
 });
