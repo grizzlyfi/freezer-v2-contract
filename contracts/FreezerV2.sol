@@ -2,9 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "./FreezerBase.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract FreezerV2 is FreezerBase {
-    using SafeERC20 for IERC20;
+contract FreezerV2 is Initializable, FreezerBase {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     struct ParticipantData {
         uint256 deposited;
         uint256 honeyRewardMask;
@@ -19,22 +20,27 @@ contract FreezerV2 is FreezerBase {
     mapping(address => ParticipantData) public participantData;
     mapping(address => uint256) public referralRewards;
 
-    function freeze(uint256 _amount, address _referral)
-        external
-        nonReentrant
-        stopInEmergency
-    {
+    function initialize() external initializer {
+        __FreezerBase_init();
+    }
+
+    function freeze(
+        uint256 _amount,
+        address _referral
+    ) external nonReentrant stopInEmergency {
         require(_amount > 0, "No amount provided");
         require(
             msg.sender != _referral,
             "Referral and msg.sender must be different"
         );
         require(
-            IERC20(address(GhnyToken)).allowance(msg.sender, address(this)) >=
-                _amount,
+            IERC20Upgradeable(address(GhnyToken)).allowance(
+                msg.sender,
+                address(this)
+            ) >= _amount,
             "Token is not approved"
         );
-        IERC20(address(GhnyToken)).safeTransferFrom(
+        IERC20Upgradeable(address(GhnyToken)).safeTransferFrom(
             msg.sender,
             address(this),
             _amount
@@ -87,7 +93,10 @@ contract FreezerV2 is FreezerBase {
 
         StakingPool.unstake(_currentBalance);
 
-        _transferToken(address(GhnyToken), msg.sender, _currentBalance);
+        IERC20Upgradeable(address(GhnyToken)).safeTransfer(
+            msg.sender,
+            _currentBalance
+        );
     }
 
     function triggerLevelUp() external stopInEmergency {
@@ -122,7 +131,10 @@ contract FreezerV2 is FreezerBase {
         uint256 _rewards = referralRewards[msg.sender];
         if (_rewards > 0) {
             GhnyToken.claimTokens(_rewards);
-            _transferToken(address(GhnyToken), msg.sender, _rewards);
+            IERC20Upgradeable(address(GhnyToken)).safeTransfer(
+                msg.sender,
+                _rewards
+            );
             referralRewards[msg.sender] = 0;
         }
     }
@@ -131,9 +143,10 @@ contract FreezerV2 is FreezerBase {
         _claimAllStakingRewards();
     }
 
-    function _payOutReferral(address _referral, uint256 _frozenAmount)
-        internal
-    {
+    function _payOutReferral(
+        address _referral,
+        uint256 _frozenAmount
+    ) internal {
         if (_referral == address(0)) return;
         uint256 _percentage;
         uint256 _referralLevel = participantData[_referral].level;
@@ -152,11 +165,9 @@ contract FreezerV2 is FreezerBase {
         referralRewards[_referral] += _referralReward;
     }
 
-    function _getUpdatedParticipantLevel(uint256 _deposited)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _getUpdatedParticipantLevel(
+        uint256 _deposited
+    ) internal pure returns (uint256) {
         uint256 _level;
         if (_deposited < 10 ether) {
             _level = 0;
@@ -211,4 +222,6 @@ contract FreezerV2 is FreezerBase {
         participantData[_depositor].deposited = _newBalance;
         participantData[_depositor].honeyRewardMask = honeyRoundMask;
     }
+
+    uint256[50] private __gap;
 }

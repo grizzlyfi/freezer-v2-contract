@@ -1,4 +1,4 @@
-import { ethers, network } from "hardhat";
+import { ethers, network, upgrades } from "hardhat";
 import { FreezerV2, IERC20, IGhny } from "../typechain-types";
 import { expect } from "chai";
 
@@ -14,7 +14,8 @@ let signer: any;
 describe("FreezerV2", function () {
     beforeEach(async function () {
         const Freezer = await ethers.getContractFactory("FreezerV2");
-        FreezerInstance = await Freezer.deploy();
+        const ProxyInstance = await upgrades.deployProxy(Freezer, []);
+        FreezerInstance = Freezer.attach(ProxyInstance.address);
 
         GhnyToken = await ethers.getContractAt("IGhny", ghnyAddress);
 
