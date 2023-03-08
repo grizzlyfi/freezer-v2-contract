@@ -1,8 +1,10 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 async function main() {
   const Freezer = await ethers.getContractFactory("FreezerV2");
-  const FreezerInstance = await Freezer.deploy();
+  const ProxyInstance = await upgrades.deployProxy(Freezer, []);
+  const FreezerInstance = Freezer.attach(ProxyInstance.address);
+
   console.log("Freezer Deployed at: " + FreezerInstance.address);
 }
 
