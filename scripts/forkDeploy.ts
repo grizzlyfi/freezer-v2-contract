@@ -13,11 +13,6 @@ async function main() {
 
     const GhnyToken = await ethers.getContractAt("IGhny", ghnyAddress);
 
-    //grant minter role
-    await network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [multisig],
-    });
     const multisigSigner = await ethers.getSigner(multisig);
     await GhnyToken.connect(multisigSigner).grantRole(await GhnyToken.MINTER_ROLE(), FreezerInstance.address);
     await GhnyToken.connect(multisigSigner).grantRole(await GhnyToken.MINTER_ROLE(), stakingPoolAddress);

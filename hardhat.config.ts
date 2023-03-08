@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
         process.env.BSC_PRIVATE_KEY !== undefined ? [process.env.BSC_PRIVATE_KEY] : [],
     },
     fork: {
-      url: process.env.BSC_REMOTE_FORK || "",
+      url: process.env.FORK_URL || "",
     },
     hardhat: {
       forking: {

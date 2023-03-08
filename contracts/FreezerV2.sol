@@ -4,26 +4,54 @@ pragma solidity ^0.8.17;
 import "./FreezerBase.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/**
+ * @title FreezerV2
+ * @dev This contract allows users to freeze GHNY tokens into the honey pot and earn rewards based on their level.
+ */
 contract FreezerV2 is Initializable, FreezerBase {
     using SafeERC20Upgradeable for IERC20Upgradeable;
+
+    /**
+     * @dev Struct to store participant data.
+     */
     struct ParticipantData {
-        uint256 deposited;
-        uint256 honeyRewardMask;
-        uint256 startTime;
-        uint256 level;
+        uint256 deposited; // Total deposited amount of GHNY tokens by the participant
+        uint256 honeyRewardMask; // Mask of the participant's share of the honey rewards
+        uint256 startTime; // Time when the participant made the first deposit or upgraded a level
+        uint256 level; // Level of the participant, determined by the amount of deposited GHNY tokens
     }
 
+    /**
+     * @dev Honey round mask.
+     */
     uint256 public honeyRoundMask;
 
+    /**
+     * @dev Total amount of tokens that are currently frozen.
+     */
     uint256 public totalFreezedAmount;
 
+    /**
+     * @dev Mapping to store participant data by their addresses.
+     */
     mapping(address => ParticipantData) public participantData;
+    /**
+     * @dev Mapping to store referral rewards by their addresses.
+     */
     mapping(address => uint256) public referralRewards;
 
+    /**
+     * @dev Initializes the contract. Uses upgradeable transparent proxy
+     */
     function initialize() external initializer {
         __FreezerBase_init();
     }
 
+    /**
+     * @dev Allows users to freeze their GHNY tokens and start staking in the staking pool
+     * @param _amount The amount of tokens to be frozen.
+     * @param _referral The address of the user who referred the current user. Can be zero address if no referral is defined
+     */
     function freeze(
         uint256 _amount,
         address _referral
@@ -74,6 +102,9 @@ contract FreezerV2 is Initializable, FreezerBase {
         _payOutReferral(_referral, _amount);
     }
 
+    /**
+     * @dev Allows users to unfreeze their tokens after freezing period is over.
+     */
     function unfreeze() external nonReentrant stopInEmergency {
         ParticipantData memory _participant = participantData[msg.sender];
         require(_participant.deposited > 0, "No deposit found");
@@ -99,6 +130,11 @@ contract FreezerV2 is Initializable, FreezerBase {
         );
     }
 
+    /**
+     * @dev Updates the level of the participant if they can increase their level by depositing more tokens.
+     * A depositor can increase their level if their updated level is higher than their current level.
+     * If the level is updated, the start time of the participant is set to the current time.
+     */
     function triggerLevelUp() external stopInEmergency {
         _claimAllStakingRewards();
         _updateParticipantDataDeposit(msg.sender);
@@ -111,6 +147,12 @@ contract FreezerV2 is Initializable, FreezerBase {
         participantData[msg.sender].level = _updatedLevel;
     }
 
+    /**
+     * @dev Checks if a depositor can increase their level by depositing more tokens.
+     * A depositor can increase their level if their updated level is higher than their current level.
+     * @param _depositor The address of the depositor to check.
+     * @return A boolean indicating whether the depositor can increase their level.
+     */
     function canIncreaseLevel(address _depositor) public view returns (bool) {
         uint256 _currentLevel = participantData[_depositor].level;
         uint256 _deposited = balanceOf(_depositor);
@@ -127,6 +169,10 @@ contract FreezerV2 is Initializable, FreezerBase {
             DECIMAL_OFFSET;
     }
 
+    /**
+     * @notice Allows users to claim referral rewards that they have earned. Users can only claim rewards if they have referred other users to the platform, and those referred users have completed successful freezings. The amount of rewards that users can claim is a percentage of the freezed amount by their referred users.
+     * @dev This function mints the GHNY referral rewards and sends them to the user. It also updates the referral rewards balance of the user to 0.
+     */
     function claimReferralRewards() external stopInEmergency nonReentrant {
         uint256 _rewards = referralRewards[msg.sender];
         if (_rewards > 0) {
@@ -139,10 +185,18 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
     }
 
+    /**
+     * @dev Manual autocompounding of the GHNY earnings
+     */
     function compound() external nonReentrant stopInEmergency {
         _claimAllStakingRewards();
     }
 
+    /**
+     * @dev Calculates the referral rewards and stores them such that the referral can go to claim it
+     * @param _referral The referral address
+     * @param _frozenAmount The amount a user has frozen using this referral address
+     */
     function _payOutReferral(
         address _referral,
         uint256 _frozenAmount
@@ -165,6 +219,11 @@ contract FreezerV2 is Initializable, FreezerBase {
         referralRewards[_referral] += _referralReward;
     }
 
+    /**
+     * @dev Gets the updated participant level using the deposited amount of GHNY
+     * @param _deposited The frozen amount of a user
+     * @return The level for the input
+     */
     function _getUpdatedParticipantLevel(
         uint256 _deposited
     ) internal pure returns (uint256) {
@@ -183,6 +242,9 @@ contract FreezerV2 is Initializable, FreezerBase {
         return _level;
     }
 
+    /**
+     * @dev Claim staking rewards, add a freezer bonus of 70% and adds it to the staking pool again. After reward the users. The Staking pool returns also a small amount of BNB (from GHNY-BNB lp tokens) which is not tracked.
+     */
     function _claimAllStakingRewards() internal {
         if (totalFreezedAmount == 0) return;
         uint256 totalLpRewards = StakingPool.lpBalanceOf(address(this));
@@ -208,11 +270,19 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
     }
 
+    /**
+     * @dev Rewards the users, by increasing the honeyRoundMask
+     * @param _amount The amount to be rewarded in GHNY tokens
+     */
     function _rewardHoney(uint256 _amount) internal {
         require(totalFreezedAmount > 0, "total freezed amount is 0");
         honeyRoundMask += (DECIMAL_OFFSET * _amount) / totalFreezedAmount;
     }
 
+    /**
+     * @dev Updated the Participant data deposit. It gets the balance using the rewards and adds them to the deposit variable, also updates the total freezed amount by the autocompounded rewards
+     * @param _depositor The depositor for which it will be updated
+     */
     function _updateParticipantDataDeposit(address _depositor) internal {
         uint256 _newBalance = balanceOf(_depositor);
         totalFreezedAmount =
