@@ -288,4 +288,131 @@ describe("FreezerV2", function () {
         expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.02"));
 
     });
+
+    it("Can do referral with level up 2", async function () {
+        const depositAmount = ethers.utils.parseEther("101");
+        const depositAmount1 = ethers.utils.parseEther("1");
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
+
+        await GhnyToken.approve(FreezerInstance.address, depositAmount1);
+        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.05"));
+
+        const balanceBefore = await GhnyToken.balanceOf(await signer.getAddress());
+
+        await FreezerInstance.connect(signer).claimReferralRewards();
+
+        const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
+
+        expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.05"));
+
+    });
+
+    it("Can do referral with level up 3", async function () {
+        const depositAmount = ethers.utils.parseEther("1001");
+        const depositAmount1 = ethers.utils.parseEther("1");
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
+
+        await GhnyToken.approve(FreezerInstance.address, depositAmount1);
+        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.07"));
+
+        const balanceBefore = await GhnyToken.balanceOf(await signer.getAddress());
+
+        await FreezerInstance.connect(signer).claimReferralRewards();
+
+        const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
+
+        expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.07"));
+
+    });
+
+    it("Can do referral with level up 4", async function () {
+        const depositAmount = ethers.utils.parseEther("10001");
+        const depositAmount1 = ethers.utils.parseEther("1");
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
+
+        await GhnyToken.approve(FreezerInstance.address, depositAmount1);
+        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.1"));
+
+        const balanceBefore = await GhnyToken.balanceOf(await signer.getAddress());
+
+        await FreezerInstance.connect(signer).claimReferralRewards();
+
+        const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
+
+        expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.1"));
+
+    });
+
+    it("Can claim 0 referral rewards", async function () {
+        const [otherSigner] = await ethers.getSigners();
+        const balanceBefore = await GhnyToken.balanceOf(otherSigner.address);
+        await FreezerInstance.claimReferralRewards();
+        const balance = await GhnyToken.balanceOf(otherSigner.address);
+        expect(balance.sub(balanceBefore)).to.equal(0);
+
+    });
+
+    it("Can not call in emergency mode", async function () {
+        await FreezerInstance.toggleContractActive();
+
+        await expect(FreezerInstance.freeze(10, ethers.constants.AddressZero)).to.be.revertedWith("Paused");
+        await expect(FreezerInstance.unfreeze()).to.be.revertedWith("Paused");
+        await expect(FreezerInstance.triggerLevelUp()).to.be.revertedWith("Paused");
+        await expect(FreezerInstance.claimReferralRewards()).to.be.revertedWith("Paused");
+        await expect(FreezerInstance.compound()).to.be.revertedWith("Paused");
+    });
+
+    it("Can not call owner functions", async function () {
+        await expect(FreezerInstance.connect(signer).toggleContractActive()).to.be.revertedWith("Ownable: caller is not the owner");
+        await expect(FreezerInstance.connect(signer).withdrawEth()).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Can recover BNB", async function () {
+
+        const [otherSigner] = await ethers.getSigners();
+
+        const Intermediate = await ethers.getContractFactory("Intermediate");
+        const IntermediateInstance = await Intermediate.deploy(FreezerInstance.address);
+
+        await IntermediateInstance.sendEth({ value: ethers.utils.parseEther("1") });
+
+        expect(await ethers.provider.getBalance(FreezerInstance.address)).to.equal(ethers.utils.parseEther("1"));
+
+        await FreezerInstance.withdrawEth();
+
+        expect(await ethers.provider.getBalance(FreezerInstance.address)).to.equal(ethers.utils.parseEther("0"));
+    });
 });

@@ -127,7 +127,7 @@ contract FreezerV2 is Initializable, FreezerBase {
             DECIMAL_OFFSET;
     }
 
-    function claimReferralRewards() external nonReentrant {
+    function claimReferralRewards() external stopInEmergency nonReentrant {
         uint256 _rewards = referralRewards[msg.sender];
         if (_rewards > 0) {
             GhnyToken.claimTokens(_rewards);
@@ -139,7 +139,7 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
     }
 
-    function compound() external nonReentrant {
+    function compound() external nonReentrant stopInEmergency {
         _claimAllStakingRewards();
     }
 
@@ -148,7 +148,7 @@ contract FreezerV2 is Initializable, FreezerBase {
         uint256 _frozenAmount
     ) internal {
         if (_referral == address(0)) return;
-        uint256 _percentage;
+        uint256 _percentage = 0;
         uint256 _referralLevel = participantData[_referral].level;
         if (_referralLevel == 0) {
             _percentage = 1;
