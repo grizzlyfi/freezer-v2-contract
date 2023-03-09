@@ -22,6 +22,15 @@ contract FreezerV2 is Initializable, FreezerBase {
     }
 
     /**
+     * @dev Struct to store referral view data.
+     */
+    struct ReferralData {
+        address depositor;
+        uint256 reward;
+        uint256 timestamp;
+    }
+
+    /**
      * @dev Honey round mask.
      */
     uint256 public honeyRoundMask;
@@ -39,6 +48,10 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @dev Mapping to store referral rewards by their addresses.
      */
     mapping(address => uint256) public referralRewards;
+    /**
+     * @dev Mapping to store referral data view by their addresses.
+     */
+    mapping(address => ReferralData[]) referralData;
 
     /**
      * @dev Initializes the contract. Uses upgradeable transparent proxy
@@ -99,7 +112,7 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
 
         participantData[msg.sender].level = _level;
-        _payOutReferral(_referral, _amount);
+        _payOutReferral(msg.sender, _referral, _amount);
     }
 
     /**
@@ -160,6 +173,11 @@ contract FreezerV2 is Initializable, FreezerBase {
         return _updatedLevel > _currentLevel;
     }
 
+    /**
+     * @dev Gets the updated balance of a user
+     * @param user The address of the depositor to check.
+     * @return The current balance
+     */
     function balanceOf(address user) public view returns (uint256) {
         ParticipantData memory participant = participantData[user];
         return
@@ -167,6 +185,36 @@ contract FreezerV2 is Initializable, FreezerBase {
             ((honeyRoundMask - participant.honeyRewardMask) *
                 participant.deposited) /
             DECIMAL_OFFSET;
+    }
+
+    /**
+     * @dev Gets all the referral depositors
+     * @param _referral The referral address for which to get the deposit data
+     * @return Array of Referral data containing who, how much were the rewards and the timestamp
+     */
+    function referralDataArray(
+        address _referral
+    ) external view returns (ReferralData[] memory) {
+        return referralData[_referral];
+    }
+
+    function getReferralPercentage(
+        address _referral
+    ) public view returns (uint256) {
+        uint256 _percentage = 0;
+        uint256 _referralLevel = participantData[_referral].level;
+        if (_referralLevel == 0) {
+            _percentage = 1;
+        } else if (_referralLevel == 1) {
+            _percentage = 2;
+        } else if (_referralLevel == 2) {
+            _percentage = 5;
+        } else if (_referralLevel == 3) {
+            _percentage = 7;
+        } else if (_referralLevel == 4) {
+            _percentage = 10;
+        }
+        return _percentage;
     }
 
     /**
@@ -198,25 +246,21 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @param _frozenAmount The amount a user has frozen using this referral address
      */
     function _payOutReferral(
+        address _depositor,
         address _referral,
         uint256 _frozenAmount
     ) internal {
         if (_referral == address(0)) return;
-        uint256 _percentage = 0;
-        uint256 _referralLevel = participantData[_referral].level;
-        if (_referralLevel == 0) {
-            _percentage = 1;
-        } else if (_referralLevel == 1) {
-            _percentage = 2;
-        } else if (_referralLevel == 2) {
-            _percentage = 5;
-        } else if (_referralLevel == 3) {
-            _percentage = 7;
-        } else if (_referralLevel == 4) {
-            _percentage = 10;
-        }
+        uint256 _percentage = getReferralPercentage(_referral);
         uint256 _referralReward = (_frozenAmount * _percentage) / 100;
         referralRewards[_referral] += _referralReward;
+        referralData[_referral].push(
+            ReferralData({
+                depositor: _depositor,
+                reward: _referralReward,
+                timestamp: block.timestamp
+            })
+        );
     }
 
     /**
