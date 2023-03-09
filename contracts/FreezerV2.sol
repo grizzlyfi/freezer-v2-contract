@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "./FreezerBase.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -25,9 +25,10 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @dev Struct to store referral view data.
      */
     struct ReferralData {
-        address depositor;
-        uint256 reward;
-        uint256 timestamp;
+        address depositor; // The depositor who used the underlying referral
+        uint256 depositAmount; // The deposited amount of the depositor
+        uint256 reward; // The reward for the underlying referral for this deposit
+        uint256 timestamp; // The timestamp of the deposit
     }
 
     /**
@@ -148,7 +149,7 @@ contract FreezerV2 is Initializable, FreezerBase {
      * A depositor can increase their level if their updated level is higher than their current level.
      * If the level is updated, the start time of the participant is set to the current time.
      */
-    function triggerLevelUp() external stopInEmergency {
+    function triggerLevelUp() external stopInEmergency nonReentrant {
         _claimAllStakingRewards();
         _updateParticipantDataDeposit(msg.sender);
         uint256 _deposited = balanceOf(msg.sender);
@@ -257,6 +258,7 @@ contract FreezerV2 is Initializable, FreezerBase {
         referralData[_referral].push(
             ReferralData({
                 depositor: _depositor,
+                depositAmount: _frozenAmount,
                 reward: _referralReward,
                 timestamp: block.timestamp
             })

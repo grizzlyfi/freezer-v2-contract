@@ -261,6 +261,7 @@ describe("FreezerV2", function () {
         const referralData = await FreezerInstance.referralDataArray(otherSigner.address);
         expect(referralData[0].depositor).to.equal(await signer.getAddress());
         expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.01"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -294,6 +295,7 @@ describe("FreezerV2", function () {
         const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
         expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
         expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.02"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -327,6 +329,7 @@ describe("FreezerV2", function () {
         const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
         expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
         expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.05"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -360,6 +363,7 @@ describe("FreezerV2", function () {
         const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
         expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
         expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.07"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -393,6 +397,7 @@ describe("FreezerV2", function () {
         const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
         expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
         expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.1"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
