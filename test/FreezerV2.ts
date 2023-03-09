@@ -258,6 +258,11 @@ describe("FreezerV2", function () {
 
         expect(await GhnyToken.balanceOf(await otherSigner.getAddress())).to.equal(ethers.utils.parseEther("0.01"));
 
+        const referralData = await FreezerInstance.referralDataArray(otherSigner.address);
+        expect(referralData[0].depositor).to.equal(await signer.getAddress());
+        expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.01"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
+
     });
 
     it("Can do referral with level up 1", async function () {
@@ -286,6 +291,11 @@ describe("FreezerV2", function () {
         const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
 
         expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.02"));
+
+        const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
+        expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
+        expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.02"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -316,6 +326,11 @@ describe("FreezerV2", function () {
 
         expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.05"));
 
+        const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
+        expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
+        expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.05"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
+
     });
 
     it("Can do referral with level up 3", async function () {
@@ -345,6 +360,11 @@ describe("FreezerV2", function () {
 
         expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.07"));
 
+        const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
+        expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
+        expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.07"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
+
     });
 
     it("Can do referral with level up 4", async function () {
@@ -373,6 +393,11 @@ describe("FreezerV2", function () {
         const balanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
 
         expect(balanceAfter.sub(balanceBefore)).to.equal(ethers.utils.parseEther("0.1"));
+
+        const referralData = await FreezerInstance.referralDataArray(await signer.getAddress());
+        expect(referralData[0].depositor).to.equal(await otherSigner.getAddress());
+        expect(referralData[0].reward).to.equal(ethers.utils.parseEther("0.1"));
+        expect(referralData[0].depositAmount).to.equal(ethers.utils.parseEther("1"));
 
     });
 
@@ -414,5 +439,23 @@ describe("FreezerV2", function () {
         await FreezerInstance.withdrawEth();
 
         expect(await ethers.provider.getBalance(FreezerInstance.address)).to.equal(ethers.utils.parseEther("0"));
+    });
+
+    it("Can get referral percentage", async function () {
+
+        const [otherSigner] = await ethers.getSigners();
+        const percentage = await FreezerInstance.getReferralPercentage(otherSigner.address);
+
+        expect(percentage).to.equal(1);
+
+        const depositAmount = ethers.utils.parseEther("11");
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+
+        const percentage2 = await FreezerInstance.getReferralPercentage(await signer.getAddress());
+
+        expect(percentage2).to.equal(2);
     });
 });
