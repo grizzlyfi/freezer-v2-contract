@@ -120,10 +120,10 @@ contract FreezerV2 is Initializable, FreezerBase {
     function unfreeze() external nonReentrant stopInEmergency {
         ParticipantData memory _participant = participantData[msg.sender];
         require(_participant.deposited > 0, "No deposit found");
-        /*require(
+        require(
             _participant.startTime + FREEZING_TIME < block.timestamp,
             "Freezing period not over"
-        );*/
+        );
         _claimAllStakingRewards();
         _updateParticipantDataDeposit(msg.sender);
 
