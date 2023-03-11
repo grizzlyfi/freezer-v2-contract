@@ -37,16 +37,16 @@ describe("FreezerV2", function () {
     });
 
     it("Can not freeze zero amount", async function () {
-        await expect(FreezerInstance.freeze(0, ethers.constants.AddressZero)).to.be.revertedWith("No amount provided")
+        await expect(FreezerInstance.freeze(await signer.getAddress(), 0, ethers.constants.AddressZero)).to.be.revertedWith("No amount provided")
     });
     it("Can not freeze when not approved", async function () {
-        await expect(FreezerInstance.freeze(1, ethers.constants.AddressZero)).to.be.revertedWith("Token is not approved")
+        await expect(FreezerInstance.freeze(await signer.getAddress(), 1, ethers.constants.AddressZero)).to.be.revertedWith("Token is not approved")
     });
 
     it("Can freeze", async function () {
         const depositAmount = ethers.utils.parseEther("1");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -58,13 +58,13 @@ describe("FreezerV2", function () {
     it("Can freeze twice", async function () {
         const depositAmount = ethers.utils.parseEther("1");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount.mul(2));
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await network.provider.send("evm_mine")
 
         const participantBefore = await FreezerInstance.participantData(await signer.getAddress());
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -81,13 +81,13 @@ describe("FreezerV2", function () {
         const depositAmount = ethers.utils.parseEther("1");
         const depositAmount2 = ethers.utils.parseEther("2");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const [otherSigner] = await ethers.getSigners();
 
         await GhnyToken.connect(signer).transfer(otherSigner.address, depositAmount2);
         await GhnyToken.approve(FreezerInstance.address, depositAmount2);
-        await FreezerInstance.freeze(depositAmount2, ethers.constants.AddressZero);
+        await FreezerInstance.freeze(await otherSigner.getAddress(), depositAmount2, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
         const participant2 = await FreezerInstance.participantData(await otherSigner.getAddress());
@@ -118,7 +118,7 @@ describe("FreezerV2", function () {
     it("Can not unfreeze when freeze time has not passed", async function () {
         const depositAmount = ethers.utils.parseEther("1");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await expect(FreezerInstance.connect(signer).unfreeze()).to.be.revertedWith("Freezing period not over")
     });
@@ -126,7 +126,7 @@ describe("FreezerV2", function () {
     it("Can unfreeze", async function () {
         const depositAmount = ethers.utils.parseEther("1");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await network.provider.send("evm_increaseTime", [15768000])
         await network.provider.send("evm_mine")
@@ -151,7 +151,7 @@ describe("FreezerV2", function () {
     it("Can increase level", async function () {
         const depositAmount = ethers.utils.parseEther("9.999999999999999");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -185,7 +185,7 @@ describe("FreezerV2", function () {
     it("Can increase level without increase", async function () {
         const depositAmount = ethers.utils.parseEther("1");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -220,7 +220,7 @@ describe("FreezerV2", function () {
         const depositAmount = ethers.utils.parseEther("1");
         const depositAmount2 = ethers.utils.parseEther("10");
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount.add(depositAmount2));
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -229,7 +229,7 @@ describe("FreezerV2", function () {
         await network.provider.send("evm_increaseTime", [3600])
         await network.provider.send("evm_mine")
 
-        await FreezerInstance.connect(signer).freeze(depositAmount2, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount2, ethers.constants.AddressZero);
 
         const participant2 = await FreezerInstance.participantData(await signer.getAddress());
 
@@ -239,7 +239,7 @@ describe("FreezerV2", function () {
     });
 
     it("Can not do same referral", async function () {
-        await expect(FreezerInstance.connect(signer).freeze(1, await signer.getAddress())).to.be.revertedWith("Referral and msg.sender must be different")
+        await expect(FreezerInstance.connect(signer).freeze(await signer.getAddress(), 1, await signer.getAddress())).to.be.revertedWith("Referral and for must be different")
     });
 
     it("Can do referral", async function () {
@@ -248,7 +248,7 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, await otherSigner.getAddress());
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
 
         const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
 
@@ -273,12 +273,12 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
 
         await GhnyToken.approve(FreezerInstance.address, depositAmount1);
-        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+        await FreezerInstance.freeze(await otherSigner.getAddress(), depositAmount1, await signer.getAddress());
 
         const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
 
@@ -307,12 +307,12 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
 
         await GhnyToken.approve(FreezerInstance.address, depositAmount1);
-        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+        await FreezerInstance.freeze(await otherSigner.getAddress(), depositAmount1, await signer.getAddress());
 
         const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
 
@@ -341,12 +341,12 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
 
         await GhnyToken.approve(FreezerInstance.address, depositAmount1);
-        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+        await FreezerInstance.freeze(await otherSigner.getAddress(), depositAmount1, await signer.getAddress());
 
         const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
 
@@ -375,12 +375,12 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         await GhnyToken.connect(signer).transfer(await otherSigner.getAddress(), depositAmount1);
 
         await GhnyToken.approve(FreezerInstance.address, depositAmount1);
-        await FreezerInstance.freeze(depositAmount1, await signer.getAddress());
+        await FreezerInstance.freeze(await otherSigner.getAddress(), depositAmount1, await signer.getAddress());
 
         const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
 
@@ -413,7 +413,7 @@ describe("FreezerV2", function () {
     it("Can not call in emergency mode", async function () {
         await FreezerInstance.toggleContractActive();
 
-        await expect(FreezerInstance.freeze(10, ethers.constants.AddressZero)).to.be.revertedWith("Paused");
+        await expect(FreezerInstance.freeze(await signer.getAddress(), 10, ethers.constants.AddressZero)).to.be.revertedWith("Paused");
         await expect(FreezerInstance.unfreeze()).to.be.revertedWith("Paused");
         await expect(FreezerInstance.triggerLevelUp()).to.be.revertedWith("Paused");
         await expect(FreezerInstance.claimReferralRewards()).to.be.revertedWith("Paused");
@@ -452,7 +452,7 @@ describe("FreezerV2", function () {
 
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
 
-        await FreezerInstance.connect(signer).freeze(depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const percentage2 = await FreezerInstance.getReferralPercentage(await signer.getAddress());
 

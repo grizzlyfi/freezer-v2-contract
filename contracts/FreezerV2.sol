@@ -67,14 +67,12 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @param _referral The address of the user who referred the current user. Can be zero address if no referral is defined
      */
     function freeze(
+        address _for,
         uint256 _amount,
         address _referral
     ) external nonReentrant stopInEmergency {
         require(_amount > 0, "No amount provided");
-        require(
-            msg.sender != _referral,
-            "Referral and msg.sender must be different"
-        );
+        require(_for != _referral, "Referral and for must be different");
         require(
             IERC20Upgradeable(address(GhnyToken)).allowance(
                 msg.sender,
@@ -89,31 +87,31 @@ contract FreezerV2 is Initializable, FreezerBase {
         );
 
         _claimAllStakingRewards();
-        _updateParticipantDataDeposit(msg.sender);
+        _updateParticipantDataDeposit(_for);
 
         _approveToken(address(GhnyToken), address(StakingPool), _amount);
         StakingPool.stake(_amount);
 
-        uint256 _depositedBefore = participantData[msg.sender].deposited;
+        uint256 _depositedBefore = participantData[_for].deposited;
 
-        participantData[msg.sender].deposited += _amount;
+        participantData[_for].deposited += _amount;
         totalFreezedAmount += _amount;
 
         uint256 _level = _getUpdatedParticipantLevel(
-            participantData[msg.sender].deposited
+            participantData[_for].deposited
         );
 
         if (_depositedBefore == 0) {
-            participantData[msg.sender].startTime = block.timestamp;
+            participantData[_for].startTime = block.timestamp;
         } else {
-            uint256 _currentLevel = participantData[msg.sender].level;
+            uint256 _currentLevel = participantData[_for].level;
             if (_level > _currentLevel) {
-                participantData[msg.sender].startTime = block.timestamp;
+                participantData[_for].startTime = block.timestamp;
             }
         }
 
-        participantData[msg.sender].level = _level;
-        _payOutReferral(msg.sender, _referral, _amount);
+        participantData[_for].level = _level;
+        _payOutReferral(_for, _referral, _amount);
     }
 
     /**
