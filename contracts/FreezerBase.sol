@@ -27,9 +27,12 @@ abstract contract FreezerBase is
     IStakingPool public StakingPool;
     IGhny public GhnyToken;
 
+    uint256 public freezingMultiplier;
+
     function __FreezerBase_init() internal onlyInitializing {
         StakingPool = IStakingPool(0x6F42895f37291ec45f0A307b155229b923Ff83F1);
         GhnyToken = IGhny(0xa045E37a0D1dd3A45fefb8803D22457abc0A728a);
+        freezingMultiplier = 70;
         stopped = false;
 
         __ReentrancyGuard_init();
@@ -63,6 +66,12 @@ abstract contract FreezerBase is
     function withdrawEth() external onlyOwner {
         uint256 qty = address(this).balance;
         AddressUpgradeable.sendValue(payable(owner()), qty);
+    }
+
+    function setFreezingMultiplier(
+        uint256 _freezingMultiplier
+    ) external onlyOwner {
+        freezingMultiplier = _freezingMultiplier;
     }
 
     receive() external payable {

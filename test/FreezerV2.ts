@@ -458,4 +458,18 @@ describe("FreezerV2", function () {
 
         expect(percentage2).to.equal(2);
     });
+
+    it("Can set freezing multiplier", async function () {
+
+        const [otherSigner] = await ethers.getSigners();
+        expect(await FreezerInstance.freezingMultiplier()).to.equal(70);
+
+        await FreezerInstance.setFreezingMultiplier(100);
+
+        expect(await FreezerInstance.freezingMultiplier()).to.equal(100);
+    });
+
+    it("Can not set freezing multiplier when not owner", async function () {
+        await expect(FreezerInstance.connect(signer).setFreezingMultiplier(100)).to.be.revertedWith("Ownable: caller is not the owner");
+    });
 });
