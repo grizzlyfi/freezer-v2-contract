@@ -18,7 +18,7 @@ abstract contract FreezerBase is
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     uint256 constant DECIMAL_OFFSET = 1 ether;
-    uint256 constant FREEZING_TIME = 4380 hours;
+    uint256 public constant FREEZING_TIME = 4380 hours;
     address internal constant ETHAddress =
         0x0000000000000000000000000000000000000000;
 
