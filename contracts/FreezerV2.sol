@@ -300,7 +300,8 @@ contract FreezerV2 is Initializable, FreezerBase {
             address(this)
         );
         if (claimedAdditionalHoney > 0) {
-            uint256 _freezerBonus = (claimedAdditionalHoney * 7) / 10;
+            uint256 _freezerBonus = (claimedAdditionalHoney *
+                freezingMultiplier) / 100;
 
             GhnyToken.claimTokens(_freezerBonus);
 
