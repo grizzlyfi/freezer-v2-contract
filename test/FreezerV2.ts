@@ -71,9 +71,9 @@ describe("FreezerV2", function () {
         const totalDepositAmount = await FreezerInstance.totalFreezedAmount();
 
         expect(participant.deposited).to.be.greaterThan(depositAmount.mul(2));
-        expect(participant.honeyRewardMask).to.equal(62243800000);
+        expect(participant.honeyRewardMask).to.equal(146456000000);
         expect(participant.level).to.equal(0);
-        expect(totalDepositAmount).to.equal(depositAmount.mul(2).add(62243800000))
+        expect(totalDepositAmount).to.equal(depositAmount.mul(2).add(146456000000))
         expect(participantBefore.startTime).to.equal(participant.startTime)
     })
 
@@ -97,13 +97,13 @@ describe("FreezerV2", function () {
         expect(participant.level).to.equal(0);
 
         expect(participant2.deposited).to.equal(depositAmount2);
-        expect(participant2.honeyRewardMask).to.equal(93365530000);
+        expect(participant2.honeyRewardMask).to.equal(219683600000);
         expect(participant2.level).to.equal(0);
 
         const balance = await FreezerInstance.balanceOf(await signer.getAddress());
         const balance2 = await FreezerInstance.balanceOf(await otherSigner.getAddress());
 
-        expect(balance).to.equal(depositAmount.add(93365530000));
+        expect(balance).to.equal(depositAmount.add(219683600000));
         expect(balance2).to.equal(depositAmount2);
 
         const totalFreezedAmount = await FreezerInstance.totalFreezedAmount();
@@ -137,7 +137,7 @@ describe("FreezerV2", function () {
 
         const ghnyBalanceAfter = await GhnyToken.balanceOf(await signer.getAddress());
 
-        expect(ghnyBalanceAfter.sub(ghnyBalanceBefore)).to.equal(depositAmount.add(62243120000))
+        expect(ghnyBalanceAfter.sub(ghnyBalanceBefore)).to.equal(depositAmount.add(146454400000))
 
         const participant = await FreezerInstance.participantData(await signer.getAddress());
         const totalFreezedAmount = await FreezerInstance.totalFreezedAmount();
@@ -462,7 +462,7 @@ describe("FreezerV2", function () {
     it("Can set freezing multiplier", async function () {
 
         const [otherSigner] = await ethers.getSigners();
-        expect(await FreezerInstance.freezingMultiplier()).to.equal(70);
+        expect(await FreezerInstance.freezingMultiplier()).to.equal(300);
 
         await FreezerInstance.setFreezingMultiplier(100);
 

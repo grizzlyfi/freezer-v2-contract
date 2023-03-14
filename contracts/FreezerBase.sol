@@ -32,7 +32,8 @@ abstract contract FreezerBase is
     function __FreezerBase_init() internal onlyInitializing {
         StakingPool = IStakingPool(0x6F42895f37291ec45f0A307b155229b923Ff83F1);
         GhnyToken = IGhny(0xa045E37a0D1dd3A45fefb8803D22457abc0A728a);
-        freezingMultiplier = 70;
+        // total multiplier of 4x
+        freezingMultiplier = 300;
         stopped = false;
 
         __ReentrancyGuard_init();
