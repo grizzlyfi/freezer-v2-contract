@@ -472,4 +472,45 @@ describe("FreezerV2", function () {
     it("Can not set freezing multiplier when not owner", async function () {
         await expect(FreezerInstance.connect(signer).setFreezingMultiplier(100)).to.be.revertedWith("Ownable: caller is not the owner");
     });
+
+    it("Can only set referral first time", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.01"));
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
+
+
+        const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0.02"));
+    });
+
+    it("Can only set referral first time", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
+
+        const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0"));
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
+
+        const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0"));
+    });
 });

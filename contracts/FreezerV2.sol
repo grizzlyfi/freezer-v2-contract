@@ -73,6 +73,10 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @dev Mapping to store referral data view by their addresses.
      */
     mapping(address => ReferralData[]) referralData;
+    /**
+     * @dev Referrals for depositors
+     */
+    mapping(address => address) public referrals;
 
     /**
      * @dev Initializes the contract. Uses upgradeable transparent proxy
@@ -131,9 +135,14 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
 
         participantData[_for].level = _level;
-        _payOutReferral(_for, _referral, _amount);
 
-        emit Freezed(msg.sender, _for, _amount, _referral);
+        if (referrals[msg.sender] == address(0) && _depositedBefore == 0) {
+            referrals[msg.sender] = _referral;
+        }
+
+        _payOutReferral(_for, referrals[msg.sender], _amount);
+
+        emit Freezed(msg.sender, _for, _amount, referrals[msg.sender]);
     }
 
     /**
@@ -373,5 +382,5 @@ contract FreezerV2 is Initializable, FreezerBase {
         participantData[_depositor].honeyRewardMask = honeyRoundMask;
     }
 
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }
