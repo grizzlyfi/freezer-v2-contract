@@ -513,4 +513,24 @@ describe("FreezerV2", function () {
         const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
         expect(referralReward2).to.equal(ethers.utils.parseEther("0"));
     });
+
+    it("Can only set referral first time with other msg sender", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.connect(signer).freeze(await otherSigner.getAddress(), depositAmount, await signer.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.01"));
+
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(await otherSigner.getAddress(), depositAmount, ethers.constants.AddressZero);
+
+        const referralReward2 = await FreezerInstance.referralRewards(await signer.getAddress());
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0.02"));
+    });
 });
