@@ -275,6 +275,270 @@
           }
         }
       }
+    },
+    "d0519182e8971922e983c9621ae6ab6b370d30aa692f66f85853c2c01ef2aa44": {
+      "address": "0x5504b5d5eC7B18A2b2Dd5f73E2C95ae2Ce23CCd9",
+      "txHash": "0x55bb0072044a3195b678f98855519c477be06d1c2256f33d48b9b450d2770779",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "stopped",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_bool",
+            "contract": "FreezerBase",
+            "src": "contracts\\FreezerBase.sol:25"
+          },
+          {
+            "label": "StakingPool",
+            "offset": 1,
+            "slot": "151",
+            "type": "t_contract(IStakingPool)2354",
+            "contract": "FreezerBase",
+            "src": "contracts\\FreezerBase.sol:27"
+          },
+          {
+            "label": "GhnyToken",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(IGhny)2309",
+            "contract": "FreezerBase",
+            "src": "contracts\\FreezerBase.sol:28"
+          },
+          {
+            "label": "freezingMultiplier",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_uint256",
+            "contract": "FreezerBase",
+            "src": "contracts\\FreezerBase.sol:30"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "FreezerBase",
+            "src": "contracts\\FreezerBase.sol:82"
+          },
+          {
+            "label": "honeyRoundMask",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_uint256",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:57"
+          },
+          {
+            "label": "totalFreezedAmount",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_uint256",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:62"
+          },
+          {
+            "label": "participantData",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_mapping(t_address,t_struct(ParticipantData)1370_storage)",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:67"
+          },
+          {
+            "label": "referralRewards",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:71"
+          },
+          {
+            "label": "referralData",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_mapping(t_address,t_array(t_struct(ReferralData)1379_storage)dyn_storage)",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:75"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "FreezerV2",
+            "src": "contracts\\FreezerV2.sol:376"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(ReferralData)1379_storage)dyn_storage": {
+            "label": "struct FreezerV2.ReferralData[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IGhny)2309": {
+            "label": "contract IGhny",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStakingPool)2354": {
+            "label": "contract IStakingPool",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_array(t_struct(ReferralData)1379_storage)dyn_storage)": {
+            "label": "mapping(address => struct FreezerV2.ReferralData[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(ParticipantData)1370_storage)": {
+            "label": "mapping(address => struct FreezerV2.ParticipantData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ParticipantData)1370_storage": {
+            "label": "struct FreezerV2.ParticipantData",
+            "members": [
+              {
+                "label": "deposited",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "honeyRewardMask",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "startTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "level",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(ReferralData)1379_storage": {
+            "label": "struct FreezerV2.ReferralData",
+            "members": [
+              {
+                "label": "depositor",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "depositAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "reward",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }
