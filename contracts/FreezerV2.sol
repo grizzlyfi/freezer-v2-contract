@@ -136,13 +136,13 @@ contract FreezerV2 is Initializable, FreezerBase {
 
         participantData[_for].level = _level;
 
-        if (referrals[msg.sender] == address(0) && _depositedBefore == 0) {
-            referrals[msg.sender] = _referral;
+        if (referrals[_for] == address(0) && _depositedBefore == 0) {
+            referrals[_for] = _referral;
         }
 
-        _payOutReferral(_for, referrals[msg.sender], _amount);
+        _payOutReferral(_for, referrals[_for], _amount);
 
-        emit Freezed(msg.sender, _for, _amount, referrals[msg.sender]);
+        emit Freezed(msg.sender, _for, _amount, referrals[_for]);
     }
 
     /**
