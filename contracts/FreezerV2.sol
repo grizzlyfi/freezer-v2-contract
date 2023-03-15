@@ -31,6 +31,26 @@ contract FreezerV2 is Initializable, FreezerBase {
         uint256 timestamp; // The timestamp of the deposit
     }
 
+    event Freezed(
+        address indexed _from,
+        address indexed _for,
+        uint256 _amount,
+        address _referral
+    );
+    event Unfreezed(address indexed _for, uint256 _amount);
+    event ReferralPaidOut(
+        address indexed _from,
+        address indexed _referral,
+        uint256 _freezeAmount,
+        uint256 _referralAmount
+    );
+    event RewardsClaimed(uint256 _stakingRewards, uint256 _freezerBonus);
+    event LevelTriggeredUp(
+        address indexed _for,
+        uint256 _levelBefore,
+        uint256 _levelAfter
+    );
+
     /**
      * @dev Honey round mask.
      */
@@ -112,6 +132,8 @@ contract FreezerV2 is Initializable, FreezerBase {
 
         participantData[_for].level = _level;
         _payOutReferral(_for, _referral, _amount);
+
+        emit Freezed(msg.sender, _for, _amount, _referral);
     }
 
     /**
@@ -140,6 +162,8 @@ contract FreezerV2 is Initializable, FreezerBase {
             msg.sender,
             _currentBalance
         );
+
+        emit Unfreezed(msg.sender, _currentBalance);
     }
 
     /**
@@ -157,6 +181,8 @@ contract FreezerV2 is Initializable, FreezerBase {
             participantData[msg.sender].startTime = block.timestamp;
         }
         participantData[msg.sender].level = _updatedLevel;
+
+        emit LevelTriggeredUp(msg.sender, _currentLevel, _updatedLevel);
     }
 
     /**
@@ -261,6 +287,13 @@ contract FreezerV2 is Initializable, FreezerBase {
                 timestamp: block.timestamp
             })
         );
+
+        emit ReferralPaidOut(
+            _depositor,
+            _referral,
+            _frozenAmount,
+            _referralReward
+        );
     }
 
     /**
@@ -312,6 +345,8 @@ contract FreezerV2 is Initializable, FreezerBase {
             );
             StakingPool.stake(claimedAdditionalHoney + _freezerBonus);
             _rewardHoney(claimedAdditionalHoney + _freezerBonus);
+
+            emit RewardsClaimed(claimedAdditionalHoney, _freezerBonus);
         }
     }
 
