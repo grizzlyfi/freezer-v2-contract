@@ -96,8 +96,10 @@ contract FreezerV2 is Initializable, FreezerBase {
         address _referral
     ) external nonReentrant stopInEmergency {
         require(_amount > 0, "No amount provided");
+        if (msg.sender != OLD_FREEZER) {
+            require(msg.sender == _for, "No investment for other user");
+        }
         require(_for != _referral, "Referral and for must be different");
-        require(_for != address(0), "No freezing to zero address");
         require(
             IERC20Upgradeable(address(GhnyToken)).allowance(
                 msg.sender,

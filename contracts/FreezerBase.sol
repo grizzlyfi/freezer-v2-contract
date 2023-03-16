@@ -21,6 +21,8 @@ abstract contract FreezerBase is
     uint256 public constant FREEZING_TIME = 4380 hours;
     address internal constant ETHAddress =
         0x0000000000000000000000000000000000000000;
+    address public constant OLD_FREEZER =
+        0xB80287c110a76e4BbF0315337Dbc8d98d7DE25DB;
 
     bool public stopped;
 

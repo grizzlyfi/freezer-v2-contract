@@ -40,7 +40,7 @@ describe("FreezerV2", function () {
         await expect(FreezerInstance.freeze(await signer.getAddress(), 0, ethers.constants.AddressZero)).to.be.revertedWith("No amount provided")
     });
     it("Can not freeze when not approved", async function () {
-        await expect(FreezerInstance.freeze(await signer.getAddress(), 1, ethers.constants.AddressZero)).to.be.revertedWith("Token is not approved")
+        await expect(FreezerInstance.connect(signer).freeze(await signer.getAddress(), 1, ethers.constants.AddressZero)).to.be.revertedWith("Token is not approved")
     });
 
     it("Can freeze", async function () {
@@ -520,17 +520,17 @@ describe("FreezerV2", function () {
 
         const [otherSigner] = await ethers.getSigners();
 
-        await FreezerInstance.connect(signer).freeze(await otherSigner.getAddress(), depositAmount, await signer.getAddress());
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
 
-        const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
+        const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
 
-        expect(referralReward).to.equal(ethers.utils.parseEther("0"));
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.01"));
 
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
 
-        await FreezerInstance.connect(signer).freeze(await otherSigner.getAddress(), depositAmount, ethers.constants.AddressZero);
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
 
-        const referralReward2 = await FreezerInstance.referralRewards(await signer.getAddress());
-        expect(referralReward2).to.equal(ethers.utils.parseEther("0"));
+        const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0.02"));
     });
 });
