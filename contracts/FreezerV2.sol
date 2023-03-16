@@ -136,7 +136,7 @@ contract FreezerV2 is Initializable, FreezerBase {
 
         participantData[_for].level = _level;
 
-        if (referrals[_for] == address(0) && _depositedBefore == 0) {
+        if (referrals[_for] == address(0)) {
             referrals[_for] = _referral;
         }
 
