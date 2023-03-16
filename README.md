@@ -11,7 +11,7 @@ The following specification should be represented in the contract:
 - A user can always freeze more if he wants. If he passes the threshold to another level, the freezing period is reseted.
 - After the freezing period, the user can withdraw all GHNY tokens including all autocompounded rewards.
 - The user can manually trigger a level up. This can happen, when he reaches a new level by getting GHNY rewards.
-- The freezer adds a freezer bonus (currently 70% tbd) on top of the staking GHNY rewards which will be minted, added to the staking rewards and restaked into the honey pot.
+- The freezer adds a freezer bonus (currently 300%) on top of the staking GHNY rewards which will be minted, added to the staking rewards and restaked into the honey pot.
 - The BNB rewards (originating from GHNY-BNB Lp rewards) are not tracked and stay in the contract, which can be withdrawn by the owner.
 
 ## Set up the project
