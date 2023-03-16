@@ -524,13 +524,13 @@ describe("FreezerV2", function () {
 
         const referralReward = await FreezerInstance.referralRewards(await signer.getAddress());
 
-        expect(referralReward).to.equal(ethers.utils.parseEther("0.01"));
+        expect(referralReward).to.equal(ethers.utils.parseEther("0"));
 
         await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
 
         await FreezerInstance.connect(signer).freeze(await otherSigner.getAddress(), depositAmount, ethers.constants.AddressZero);
 
         const referralReward2 = await FreezerInstance.referralRewards(await signer.getAddress());
-        expect(referralReward2).to.equal(ethers.utils.parseEther("0.02"));
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0"));
     });
 });

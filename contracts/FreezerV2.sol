@@ -97,6 +97,7 @@ contract FreezerV2 is Initializable, FreezerBase {
     ) external nonReentrant stopInEmergency {
         require(_amount > 0, "No amount provided");
         require(_for != _referral, "Referral and for must be different");
+        require(_for != address(0), "No freezing to zero address");
         require(
             IERC20Upgradeable(address(GhnyToken)).allowance(
                 msg.sender,
@@ -136,7 +137,7 @@ contract FreezerV2 is Initializable, FreezerBase {
 
         participantData[_for].level = _level;
 
-        if (referrals[_for] == address(0)) {
+        if (referrals[_for] == address(0) && msg.sender == _for) {
             referrals[_for] = _referral;
         }
 
