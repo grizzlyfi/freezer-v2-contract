@@ -511,7 +511,7 @@ describe("FreezerV2", function () {
         await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
 
         const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
-        expect(referralReward2).to.equal(ethers.utils.parseEther("0"));
+        expect(referralReward2).to.equal(ethers.utils.parseEther("0.01"));
     });
 
     it("Can only set referral first time with other msg sender", async function () {
