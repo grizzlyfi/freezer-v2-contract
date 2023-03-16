@@ -533,4 +533,31 @@ describe("FreezerV2", function () {
         const referralReward2 = await FreezerInstance.referralRewards(await otherSigner.getAddress());
         expect(referralReward2).to.equal(ethers.utils.parseEther("0.02"));
     });
+
+    it("Can call Freezer from old with other for", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+
+        await network.provider.request({
+            method: "hardhat_impersonateAccount",
+            params: ["0xB80287c110a76e4BbF0315337Dbc8d98d7DE25DB"],
+        });
+        const oldFreezer = await ethers.getSigner("0xB80287c110a76e4BbF0315337Dbc8d98d7DE25DB");
+
+        await GhnyToken.connect(oldFreezer).approve(FreezerInstance.address, depositAmount);
+
+
+        const participantBefore = await FreezerInstance.participantData(await signer.getAddress());
+
+        await FreezerInstance.connect(oldFreezer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        const totalDepositAmount = await FreezerInstance.totalFreezedAmount();
+
+        expect(participant.deposited).to.equal(depositAmount);
+        expect(participant.honeyRewardMask).to.equal(0);
+        expect(participant.level).to.equal(0);
+        expect(totalDepositAmount).to.equal(depositAmount)
+        expect(participantBefore.startTime).to.be.lessThan(participant.startTime)
+    });
 });
