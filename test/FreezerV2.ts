@@ -560,4 +560,71 @@ describe("FreezerV2", function () {
         expect(totalDepositAmount).to.equal(depositAmount)
         expect(participantBefore.startTime).to.be.lessThan(participant.startTime)
     });
+
+    it("Can set levels for addresses", async function () {
+
+        await FreezerInstance.setLevelBatch([await signer.getAddress()], [3]);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        const totalDepositAmount = await FreezerInstance.totalFreezedAmount();
+
+        expect(participant.deposited).to.equal(0);
+        expect(participant.honeyRewardMask).to.equal(0);
+        expect(participant.level).to.equal(3);
+        expect(totalDepositAmount).to.equal(0);
+    });
+    it("Can not invest or level up with set level", async function () {
+        await FreezerInstance.setLevelBatch([await signer.getAddress()], [3]);
+
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await expect(FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero)).to.be.revertedWith("Not supported function");
+        await expect(FreezerInstance.connect(signer).triggerLevelUp()).to.be.revertedWith("Not supported function");
+    });
+    it("Can not set level when invested", async function () {
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, ethers.constants.AddressZero);
+
+        await expect(FreezerInstance.setLevelBatch([await signer.getAddress()], [3])).to.be.revertedWith("User already deposited");
+    });
+
+    it("Can not set too high level", async function () {
+        await expect(FreezerInstance.setLevelBatch([await signer.getAddress()], [5])).to.be.revertedWith("Level too high");
+    });
+
+    it("Can not set level with different array length", async function () {
+        await expect(FreezerInstance.setLevelBatch([await signer.getAddress()], [])).to.be.revertedWith("Different length in arrays");
+    });
+
+    it("Can set level and get referral", async function () {
+        const [otherSigner] = await ethers.getSigners();
+
+        await FreezerInstance.setLevelBatch([await otherSigner.getAddress()], [3]);
+
+        const depositAmount = ethers.utils.parseEther("1");
+        await GhnyToken.connect(signer).approve(FreezerInstance.address, depositAmount);
+
+        await FreezerInstance.connect(signer).freeze(await signer.getAddress(), depositAmount, await otherSigner.getAddress());
+
+        const referralReward = await FreezerInstance.referralRewards(await otherSigner.getAddress());
+        expect(referralReward).to.equal(ethers.utils.parseEther("0.07"));
+    });
+
+    it("Can set level and reset again", async function () {
+        await FreezerInstance.setLevelBatch([await signer.getAddress()], [3]);
+        await FreezerInstance.setLevelBatch([await signer.getAddress()], [0]);
+
+        const participant = await FreezerInstance.participantData(await signer.getAddress());
+
+        const totalDepositAmount = await FreezerInstance.totalFreezedAmount();
+
+        expect(participant.deposited).to.equal(0);
+        expect(participant.honeyRewardMask).to.equal(0);
+        expect(participant.level).to.equal(0);
+        expect(totalDepositAmount).to.equal(0);
+    });
 });

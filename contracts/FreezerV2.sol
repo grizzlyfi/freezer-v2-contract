@@ -128,6 +128,11 @@ contract FreezerV2 is Initializable, FreezerBase {
             participantData[_for].deposited
         );
 
+        require(
+            _level >= participantData[_for].level,
+            "Not supported function"
+        );
+
         if (_depositedBefore == 0) {
             participantData[_for].startTime = block.timestamp;
         } else {
@@ -189,6 +194,7 @@ contract FreezerV2 is Initializable, FreezerBase {
         uint256 _deposited = balanceOf(msg.sender);
         uint256 _updatedLevel = _getUpdatedParticipantLevel(_deposited);
         uint256 _currentLevel = participantData[msg.sender].level;
+        require(_updatedLevel >= _currentLevel, "Not supported function");
         if (_updatedLevel > _currentLevel) {
             participantData[msg.sender].startTime = block.timestamp;
         }
@@ -267,6 +273,27 @@ contract FreezerV2 is Initializable, FreezerBase {
                 _rewards
             );
             referralRewards[msg.sender] = 0;
+        }
+    }
+
+    function setLevelBatch(
+        address[] memory _addresses,
+        uint256[] memory _levels
+    ) external onlyOwner {
+        require(
+            _addresses.length == _levels.length,
+            "Different length in arrays"
+        );
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            address user = _addresses[i];
+            uint256 level = _levels[i];
+            require(level <= 4, "Level too high");
+            require(
+                participantData[user].deposited == 0,
+                "User already deposited"
+            );
+
+            participantData[user].level = level;
         }
     }
 
