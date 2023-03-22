@@ -21,6 +21,7 @@
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@openzeppelin/contracts": "^4.8.1",
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
+    "@openzeppelin/hardhat-defender": "^1.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",

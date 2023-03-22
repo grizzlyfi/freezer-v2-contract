@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@openzeppelin/hardhat-upgrades';
+import '@openzeppelin/hardhat-defender';
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -33,6 +34,10 @@ const config: HardhatUserConfig = {
       throwOnTransactionFailures: true,
     }
   },
+  defender: {
+    apiKey: process.env.API_KEY,
+    apiSecret: process.env.API_SECRET,
+  }
 };
 
 export default config;
