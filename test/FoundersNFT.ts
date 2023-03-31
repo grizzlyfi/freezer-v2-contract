@@ -59,5 +59,50 @@ describe("Founders NFT", function () {
         expect(totalSupply2).to.equal(1);
     });
 
+    it("Can batch mint NFT for only one user", async function () {
+        await FoundersNFTInstance.mintBatch(Signer2.address, [await FoundersNFTInstance.SILVER(), await FoundersNFTInstance.GOLD()], [1, 2], "0x");
+
+        const balanceOf1 = await FoundersNFTInstance.balanceOf(Signer2.address, 1);
+        const balanceOf2 = await FoundersNFTInstance.balanceOf(Signer2.address, 2);
+        const totalSupply1 = await FoundersNFTInstance.totalSupply(1);
+        const totalSupply2 = await FoundersNFTInstance.totalSupply(2);
+
+        expect(balanceOf1).to.equal(1);
+        expect(balanceOf2).to.equal(2);
+        expect(totalSupply1).to.equal(1);
+        expect(totalSupply2).to.equal(2);
+    });
+
+
+    it("Can set uri, name and symbol", async function () {
+        const uri = "someuri";
+        const name = "somename";
+        const symbol = "somesymbol";
+        await FoundersNFTInstance.setURI(uri);
+        await FoundersNFTInstance.setName(name);
+        await FoundersNFTInstance.setSymbol(symbol);
+
+        expect(await FoundersNFTInstance.uri(1)).to.equal(uri);
+        expect(await FoundersNFTInstance.name()).to.equal(name);
+        expect(await FoundersNFTInstance.symbol()).to.equal(symbol);
+    });
+
+    it("Can not call admin methods", async function () {
+        await expect(FoundersNFTInstance.connect(Signer2).setURI("xxx")).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(FoundersNFTInstance.connect(Signer2).setName("xxx")).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(FoundersNFTInstance.connect(Signer2).setSymbol("xxx")).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(FoundersNFTInstance.connect(Signer2).mint(Signer2.address, 1, 1, "0x")).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(FoundersNFTInstance.connect(Signer2).mintBatch(Signer2.address, [1], [1], "0x")).to.be.revertedWith("Ownable: caller is not the owner")
+        await expect(FoundersNFTInstance.connect(Signer2).mintBatchUsers([Signer2.address], [1], "0x")).to.be.revertedWith("Ownable: caller is not the owner")
+    });
+
+    it("Can not call mint batch users with different length of arrays", async function () {
+        await expect(FoundersNFTInstance.mintBatchUsers([Signer2.address], [1, 0], "0x")).to.be.revertedWith("Not equal length")
+    });
+
+    it("Can not initialize twice", async function () {
+        await expect(FoundersNFTInstance.initialize("", "", "")).to.be.rejectedWith("Initializable: contract is already initialized");
+    });
+
 
 });
