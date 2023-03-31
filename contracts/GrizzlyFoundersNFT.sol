@@ -36,6 +36,14 @@ contract GrizzlyFoundersNFT is
         _setURI(newuri);
     }
 
+    function setName(string memory newName) public onlyOwner {
+        name = newName;
+    }
+
+    function setSymbol(string memory newSymbol) public onlyOwner {
+        symbol = newSymbol;
+    }
+
     function mint(
         address account,
         uint256 id,
