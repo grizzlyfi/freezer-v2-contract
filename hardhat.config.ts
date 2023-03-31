@@ -32,6 +32,16 @@ const config: HardhatUserConfig = {
       },
       throwOnCallFailures: true,
       throwOnTransactionFailures: true,
+    },
+    bscTest: {
+      url: process.env.BSC_TESTNET_URL || "",
+      accounts:
+        process.env.BSC_TESTNET_PRIVATE_KEY !== undefined ? [process.env.BSC_TESTNET_PRIVATE_KEY] : [],
+    },
+    goerli: {
+      url: process.env.GOERLI_URL || "",
+      accounts:
+        process.env.BSC_TESTNET_PRIVATE_KEY !== undefined ? [process.env.BSC_TESTNET_PRIVATE_KEY] : [],
     }
   },
   defender: {
