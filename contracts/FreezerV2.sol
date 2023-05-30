@@ -77,6 +77,8 @@ contract FreezerV2 is Initializable, FreezerBase {
      * @dev Referrals for depositors
      */
     mapping(address => address) public referrals;
+    uint256 public blockReward;
+    uint256 public lastUpdatedBlockReward;
 
     /**
      * @dev Initializes the contract. Uses upgradeable transparent proxy
@@ -276,6 +278,10 @@ contract FreezerV2 is Initializable, FreezerBase {
         }
     }
 
+    function setBlockRewards(uint256 _newBlockReward) external onlyOwner {
+        blockReward = _newBlockReward;
+    }
+
     function setLevelBatch(
         address[] memory _addresses,
         uint256[] memory _levels
@@ -365,28 +371,43 @@ contract FreezerV2 is Initializable, FreezerBase {
         if (totalFreezedAmount == 0) return;
         uint256 totalLpRewards = StakingPool.lpBalanceOf(address(this));
         uint256 additionalHoney = StakingPool.getPendingHoneyRewards();
-        if (totalLpRewards == 0 && additionalHoney == 0) return;
-        (uint256 claimedAdditionalHoney, ) = StakingPool.claimLpTokens(
-            totalLpRewards,
-            additionalHoney,
-            address(this)
-        );
-        if (claimedAdditionalHoney > 0) {
-            uint256 _freezerBonus = (claimedAdditionalHoney *
-                freezingMultiplier) / 100;
+        uint256 claimedAdditionalHoney = 0;
 
-            GhnyToken.claimTokens(_freezerBonus);
-
-            _approveToken(
-                address(GhnyToken),
-                address(StakingPool),
-                claimedAdditionalHoney + _freezerBonus
+        // get lp and additional honey rewards
+        if (totalLpRewards != 0 || additionalHoney != 0) {
+            (claimedAdditionalHoney, ) = StakingPool.claimLpTokens(
+                totalLpRewards,
+                additionalHoney,
+                address(this)
             );
-            StakingPool.stake(claimedAdditionalHoney + _freezerBonus);
-            _rewardHoney(claimedAdditionalHoney + _freezerBonus);
-
-            emit RewardsClaimed(claimedAdditionalHoney, _freezerBonus);
         }
+
+        // get block rewards
+        if (lastUpdatedBlockReward == 0) {
+            lastUpdatedBlockReward = block.number;
+        }
+        uint256 currentBlockRewards = pendingBlockRewards();
+        lastUpdatedBlockReward = block.number;
+
+        GhnyToken.claimTokens(currentBlockRewards);
+
+        _approveToken(
+            address(GhnyToken),
+            address(StakingPool),
+            claimedAdditionalHoney + currentBlockRewards
+        );
+        StakingPool.stake(claimedAdditionalHoney + currentBlockRewards);
+        _rewardHoney(claimedAdditionalHoney + currentBlockRewards);
+
+        emit RewardsClaimed(claimedAdditionalHoney, currentBlockRewards);
+    }
+
+    function pendingBlockRewards() public view returns (uint256) {
+        if (lastUpdatedBlockReward == 0) {
+            return 0;
+        }
+        uint256 period = block.number - lastUpdatedBlockReward;
+        return period * blockReward;
     }
 
     /**
@@ -412,5 +433,5 @@ contract FreezerV2 is Initializable, FreezerBase {
         participantData[_depositor].honeyRewardMask = honeyRoundMask;
     }
 
-    uint256[49] private __gap;
+    uint256[47] private __gap;
 }
