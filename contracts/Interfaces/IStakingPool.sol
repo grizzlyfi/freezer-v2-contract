@@ -17,4 +17,11 @@ interface IStakingPool {
         uint256 honeyRewards,
         address to
     ) external returns (uint256 additionalGhny, uint256 additionalBnb);
+
+    function setHoneyMintingRewards(
+        uint256 _blockRewardPhase1End,
+        uint256 _blockRewardPhase2Start,
+        uint256 _blockRewardPhase1Amount,
+        uint256 _blockRewardPhase2Amount
+    ) external;
 }

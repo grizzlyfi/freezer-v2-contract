@@ -279,6 +279,7 @@ contract FreezerV2 is Initializable, FreezerBase {
     }
 
     function setBlockRewards(uint256 _newBlockReward) external onlyOwner {
+        _claimAllStakingRewards();
         blockReward = _newBlockReward;
     }
 
